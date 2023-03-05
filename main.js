@@ -11,42 +11,47 @@ const app = express();
 app.use(urlencoded({ extended: false }));
 
 async function sendMessage(message, numbers, twiml){
-  try{
     for (let i = 0; i < numbers.length; i++) {
     const toNumber = numbers[i];
+    try{
     twiml.message({ to: toNumber }, message);
+    }catch(error){
+      console.error(error);
+      twiml.message({to:Admin}, `error:${error} , message not sent`)
+    }
   }
   twiml.message({ to: Admin }, `Message Sent`);
   console.log(` ${message} was sent to ${numbers.length} person`);
   Confirmation = false;
-  isMessage = false;}
-  catch(error){
-    console.log(error);
-  }
+  isMessage = false;
 }
 async function sendMMs(mediaArray, numbers, twiml){
-  try{
 
-       for (let i = 0; i < numbers.length; i++) {
-      numberindex = numbers[i];
-      for (let i = 0; i < mediaArray.length; i++) {
-          twiml.message({ to: numberindex }).media(mediaArray[i]);
+
+    for (let i = 0; i < numbers.length; i++) {
+      try{
+        numberindex = numbers[i];
+        for (let i = 0; i < mediaArray.length; i++) {
+            twiml.message({ to: numberindex }).media(mediaArray[i]);
+        }
       }
-
+      catch(error){
+        console.error(error);
+        twiml.message({to:Admin}, `error:${error} , message not sent`)
+    }
       Confirmation = false;
       isMessage = false;
     }
-    console.log(` image was sent to ${numbers.length} person`);
-  }catch(errror){
-    console.log(error);
-  }
+
+
 }
 
 async function sendMessageMMS(lastMessage, numbers, mediaArray, twiml){
-  try{
+
         // twiml.message({ to: Admin }, `Message Sent`);
         
         for (let i = 0; i < numbers.length; i++) {
+          try{
             numberindex = numbers[i];
             for (let i = 0; i < mediaArray.length; i++) {
                 twiml.message({ to: numberindex }).media(mediaArray[i]);
@@ -54,12 +59,14 @@ async function sendMessageMMS(lastMessage, numbers, mediaArray, twiml){
             
             twiml.message({ to: numberindex }, lastMessage);
           }
-          console.log(` ${lastMessage} was sent to ${numbers.length} person`);
+          catch(error){
+            console.error(error);
+            twiml.message({to:Admin}, `error:${error} , message not sent`)
+          }
+        }
           Confirmation = false;
           isMessage = false;
-  }catch(error){
-    console.log(error);
-  }
+
 
 }
 
@@ -69,7 +76,6 @@ async function sendMessageMMS(lastMessage, numbers, mediaArray, twiml){
 
 
 app.post('/sms', async (req, res, callback) => {
-  var counter = 0;
   
 
   
@@ -135,7 +141,7 @@ else if (Confirmation == true && messageContent.toLowerCase() !== "yes" ){
 }
  }else{
     if (numbers.includes(fromNumber)) {
-        if(messageContent.toLowerCase() == "mute"){
+        if(messageContent.toLowerCase() == "stop"){
             for (let i = 0; i < numbers.length; i++) {
                 if (numbers[i] === fromNumber) {
                   numbers.splice(i, 1);
@@ -145,13 +151,13 @@ else if (Confirmation == true && messageContent.toLowerCase() !== "yes" ){
                         return;
                     }
                 });
-                  twiml.message({ to: fromNumber }, `You Are No Longer Subscribed`);
-                  i--; // update the loop counter to avoid skipping the next element
+                  console.log(`${fromNumber} was removed from message list`);
+                  i--; 
                 }
               }
 
         }else{
-        twiml.message({ to: fromNumber}, `Your Already Subscribed reply MUTE to Unsubscribe`);
+        twiml.message({ to: fromNumber}, `Your Already Subscribed reply STOP to Unsubscribe`);
     }
       } else {
 
@@ -162,7 +168,7 @@ else if (Confirmation == true && messageContent.toLowerCase() !== "yes" ){
               return;
           }
       });
-        twiml.message({ to: fromNumber }, `You Are Now Subscribed Reply MUTE at any time to stop receiving messages`);
+        twiml.message({ to: fromNumber }, `You Are Now Subscribed Reply STOP at any time to stop receiving messages`);
         
       }
 
